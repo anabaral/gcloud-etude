@@ -56,6 +56,7 @@ externalDatabase:
   port: 3306
 metrics:
   enabled: true           # prometheus 설치하므로 거기서 수집할 수 있게
+replicaCount: 2
 sidecars:
 - name: cloudsql-proxy    # k8s에서 google cloud sql 접속하는 가장 권장되는 방법이 sidecar 
   image: gcr.io/cloudsql-docker/gce-proxy:1.11

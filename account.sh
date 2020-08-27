@@ -10,6 +10,7 @@ DB_PASS=database_password_2020_ttc_team14!!
 ROLE=roles/cloudsql.editor
 create(){
   gcloud iam service-accounts create $SA_NAME --display-name $SA_NAME
+  sleep 2 # 여러 번 실행하다 보면  아래 명령이 실행되는 시점에 위의 서비스 계정이 없을 때가 있더라
   SA_EMAIL=$(gcloud iam service-accounts list --filter=displayName:$SA_NAME --format='value(email)')  echo "sa_id= $SA_EMAIL"  # cloudsql-proxy@ttc-team-14.iam.gserviceaccount.com
   # kubectl create sa -n ${NS} ${KSA_NAME}
   gcloud projects add-iam-policy-binding $PROJECT_ID --role ${ROLE} --member serviceAccount:$SA_EMAIL

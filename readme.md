@@ -124,3 +124,5 @@ metrics.enabled: true
 $ helm install -n ttc-app elasticsearch bitnami/elasticsearch
 ```
 
+이후 wordpress 관리자 화면에서 elasticsearch 연결 서비스 ( http://elasticsearch-elasticsearch-coordinating-only.ttc-app:9200 ) 등록하면 완료
+

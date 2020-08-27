@@ -32,6 +32,38 @@ $ sh account.sh delete  # 삭제할
 - https://cloud.google.com/sql/docs/mysql/connect-kubernetes-engine#secrets
 - https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity#enable_on_existing_cluster
 
+## container image 보전
+
+불필요할 수도 있어 보이지만 이미지를 항상 latest로 받는 것이 리스크가 있음.
+현재 설치되는 버전들의 이미지를 보전할 필요가 있음.
+
+```
+$ docker pull docker.io/bitnami/elasticsearch:7.9.0-debian-10-r0
+$ docker tag docker.io/bitnami/elasticsearch:7.9.0-debian-10-r0 asia.gcr.io/ttc-team-14/elasticsearch:7.9.0-debian-10-r0
+$ docker push asia.gcr.io/ttc-team-14/elasticsearch:7.9.0-debian-10-r0
+
+$ docker pull docker.io/bitnami/minideb:buster
+$ docker tag docker.io/bitnami/minideb:buster asia.gcr.io/ttc-team-14/minideb-buster:20200813
+$ docker push asia.gcr.io/ttc-team-14/minideb-buster:20200813
+
+$ docker pull nginx:latest
+$ docker tag nginx:latest asia.gcr.io/ttc-team-14/nginx:20200813
+$ docker push asia.gcr.io/ttc-team-14/nginx:20200813
+
+$ docker pull docker.io/bitnami/wordpress:5.5.0-debian-10-r4
+$ docker tag docker.io/bitnami/wordpress:5.5.0-debian-10-r4 asia.gcr.io/ttc-team-14/wordpress:5.5.0-debian-10-r4
+$ docker push asia.gcr.io/ttc-team-14/wordpress:5.5.0-debian-10-r4
+
+$ docker pull docker.io/bitnami/apache-exporter:0.8.0-debian-10-r123
+$ docker tag docker.io/bitnami/apache-exporter:0.8.0-debian-10-r123 asia.gcr.io/ttc-team-14/apache-exporter:0.8.0-debian-10-r123
+$ docker push asia.gcr.io/ttc-team-14/apache-exporter:0.8.0-debian-10-r123
+
+$ docker pull gcr.io/cloudsql-docker/gce-proxy:1.11
+$ docker tag gcr.io/cloudsql-docker/gce-proxy:1.11 asia.gcr.io/ttc-team-14/gce-proxy:1.11
+$ docker push asia.gcr.io/ttc-team-14/gce-proxy:1.11
+```
+
+
 ## wordpress 설치
 
 helm 으로 설치하는데 먼저 다음 파일을 작성함.
@@ -87,8 +119,9 @@ extraVolumes:
 ```
 $ kubectl create ns ttc-app                                      # 네임스페이스 안 만들었다면 만들어 주기
 $ helm repo add bitnami https://charts.bitnami.com/bitnami       # helm repo 추가 안했다면 추가하기
-$ helm install -n ttc-app wordpress -f wordpress-values.yaml bitnami/wordpress
+$ helm install -n ttc-app wordpress --version 9.5.1 -f wordpress-values.yaml bitnami/wordpress
 ```
+버전은 미리 ```helm fetch bitnami/wordpress``` 로 받아보고 알아보았음
 
 설치제거 명령도 단순
 ```
@@ -122,8 +155,9 @@ global.storageClass: standard
 data.persistence.size: 20Gi
 metrics.enabled: true
 
-$ helm install -n ttc-app elasticsearch bitnami/elasticsearch
+$ helm install -n ttc-app elasticsearch --version 12.6.2 bitnami/elasticsearch
 ```
+버전은 미리 ```helm fetch bitnami/elasticsearch``` 로 받아보고 알아보았음
 
 이후 wordpress 관리자 화면에서 elasticsearch 연결 서비스 ( http://elasticsearch-elasticsearch-coordinating-only.ttc-app:9200 ) 등록하면 완료
 

@@ -6,7 +6,7 @@ KSA_NAME=default
 SA_NAME=cloudsql-proxy
 WORKING_DIR=$HOME/ttc_etude/wordpress
 DB_USER=root
-DB_PASS=ttc2020!
+DB_PASS=database_password_2020_ttc_team14!!
 ROLE=roles/cloudsql.editor
 create(){
   gcloud iam service-accounts create $SA_NAME --display-name $SA_NAME

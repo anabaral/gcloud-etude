@@ -21,6 +21,13 @@ google cloud 도 서비스 계정이 있고 GKE (kubernetes) 도 역시 서비�
 이걸 실행하는 쉘을 만듬. 여러분이 활용하려면 조금 고쳐써야 할 거임
 https://github.com/anabaral/gcloud-etude/blob/master/account.sh
 
+사용은 단순
+```
+$ sh account.sh create  # 생성할 때
+
+$ sh account.sh delete  # 삭제할 
+```
+
 이걸 위해 다음을 참고하였음:
 - https://cloud.google.com/sql/docs/mysql/connect-kubernetes-engine#secrets
 - https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity#enable_on_existing_cluster
@@ -98,6 +105,12 @@ plugin 설치는 두 가지 방법이 존재함
 
 https://github.com/anabaral/gcloud-etude/blob/master/plugin.sh
 
+사용은 단순:
+```
+$ sh plugin.sh install     # (설치하기로 적어둔 것들) 모두 설치 및 활성화
+
+$ sh plugin.sh uninstall   # 모두 역순으로 비활성화 후 제거
+```
 
 ## elasticsearch 설치
 

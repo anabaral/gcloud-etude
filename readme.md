@@ -25,4 +25,81 @@ https://github.com/anabaral/gcloud-etude/blob/master/account.sh
 - https://cloud.google.com/sql/docs/mysql/connect-kubernetes-engine#secrets
 - https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity#enable_on_existing_cluster
 
+## wordpress 설치
+
+helm 으로 설치하는데 먼저 다음 파일을 작성함.
+```
+$ vi wordpress-values.yaml
+wordpressUsername: "ttc"
+wordpressPassword: "_my_password_for_ttc_2020_team_"
+wordpressBlogName: "TTC+SHOP"
+wordpressFirstName: ""
+wordpressLastName: "ttc"
+wordpressEmail: "ttc@sk-ttc.com"
+persistence:
+  storageClass: standard
+  size: 20Gi
+mariadb:
+  enabled: false
+externalDatabase:
+  host: 127.0.0.1
+  user: ttc
+  password: _my_another_password_for_ttc_2020_DB_
+  database: wordpress
+  port: 3306
+metrics:
+  enabled: true           # prometheus 설치하므로 거기서 수집할 수 있게
+sidecars:
+- name: cloudsql-proxy    # k8s에서 google cloud sql 접속하는 가장 권장되는 방법이 sidecar 
+  image: gcr.io/cloudsql-docker/gce-proxy:1.11
+  imagePullPolicy: Always
+  ports:
+  - name: portname
+    containerPort: 3306
+  command: ["/cloud_sql_proxy",
+            "-instances=ttc-team-14:asia-northeast3:ttc-team14=tcp:3306",
+            # If running on a VPC, the Cloud SQL proxy can connect via Private IP. See:
+            # https://cloud.google.com/sql/docs/mysql/private-ip for more info.
+            # "-ip_address_types=PRIVATE",
+            "-credential_file=/secrets/cloudsql/key.json"]
+  securityContext:
+    runAsUser: 2  # non-root user
+    allowPrivilegeEscalation: false
+  volumeMounts:
+    - name: cloudsql-instance-credentials
+      mountPath: /secrets/cloudsql
+      readOnly: true
+extraVolumes:
+- name: cloudsql-instance-credentials
+  secret:
+    secretName: cloudsql-instance-credentials
+```
+
+설치 명령은 단순
+```
+$ kubectl create ns ttc-app                                      # 네임스페이스 안 만들었다면 만들어 주기
+$ helm repo add bitnami https://charts.bitnami.com/bitnami       # helm repo 추가 안했다면 추가하기
+$ helm install -n ttc-app wordpress -f wordpress-values.yaml bitnami/wordpress
+```
+
+설치제거 명령도 단순
+```
+$ helm delete -n ttc-app wordpress
+```
+
+## wordpress 에 plugin 설치
+
+plugin 설치는 두 가지 방법이 존재함
+* 화면에서 검색 및 설치
+* wordpress 설치된 VM/Container 안에서 wp plugin install 명령 사용
+
+당장 필요한 것이 무언지 찾아서 설치하기에는 첫번째 방법이 좋은데, 자동화를 고려하면 두번째를 준비해야 함.
+일단 첫번째 방법 과정에서 플러그인 이름들을 식별해 두고, 이를 다음 쉘 작성에 참고함
+
+https://github.com/anabaral/gcloud-etude/blob/master/plugin.sh
+
+
+## elasticsearch 설치
+
+
 

@@ -67,6 +67,11 @@ $ docker push asia.gcr.io/ttc-team-14/gce-proxy:1.11
 ## wordpress 설치
 
 helm 으로 설치하는데 먼저 다음 파일을 작성함.
+
+이 때 cloudsql 을 어떻게 붙느냐에 따라 내용이 조금 달라짐.
+* (1안) cloudsql 과 gke 가 같은 VPC 상에 존재할 경우 private ip 로 직접 붙을 수 있음. 심지어 이 경우 위의 account.sh 도 불필요할 수 있음
+* (2안) 보통 권장되는 방법은 위의 account.sh 과 더불어 cloudsql proxy 를 사용하는 방법.
+
 ```
 $ vi wordpress-values.yaml
 wordpressUsername: "ttc"
@@ -81,7 +86,7 @@ persistence:
 mariadb:
   enabled: false
 externalDatabase:
-  host: 127.0.0.1
+  host: 127.0.0.1    #  2안 기준으로 127.0.0.1 이고 1안 기준은 해당DB의 private ip 를 입력
   user: ttc
   password: _my_another_password_for_ttc_2020_DB_
   database: wordpress
@@ -89,7 +94,7 @@ externalDatabase:
 metrics:
   enabled: true           # prometheus 설치하므로 거기서 수집할 수 있게
 replicaCount: 2
-sidecars:
+sidecars:                 # 2안 기준으로 이 설정이 필요. 1안을 사용할 경우 sidecar 이하 설정은 없어도 됨.
 - name: cloudsql-proxy    # k8s에서 google cloud sql 접속하는 가장 권장되는 방법이 sidecar 
   image: gcr.io/cloudsql-docker/gce-proxy:1.11
   imagePullPolicy: Always

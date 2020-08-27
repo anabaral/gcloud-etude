@@ -72,7 +72,7 @@ sidecars:
 extraVolumes:
 - name: cloudsql-instance-credentials
   secret:
-    secretName: cloudsql-instance-credentials
+    secretName: cloudsql-instance-credentials  #  이게 위의 account.sh 로 생성한 시크릿임. 
 ```
 
 설치 명령은 단순
@@ -101,5 +101,13 @@ https://github.com/anabaral/gcloud-etude/blob/master/plugin.sh
 
 ## elasticsearch 설치
 
+역시 helm 으로 설치했는데, wordpress 내부에서 사용하는 용도라서 외부 접속 등의 설정이 불필요해서 간단하게 작성
+```
+$ vi elasticsearch-values.yaml
+global.storageClass: standard
+data.persistence.size: 20Gi
+metrics.enabled: true
 
+$ helm install -n ttc-app elasticsearch bitnami/elasticsearch
+```
 

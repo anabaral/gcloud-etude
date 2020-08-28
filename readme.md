@@ -196,9 +196,11 @@ volumePermissions:
 master:
   persistence:
     size: 1Gi
+    accessModes: ReadWriteMany
 data:
   persistence:
     size: 2Gi
+    accessModes: ReadWriteMany
 metrics:
   enabled: true
 ```

@@ -75,11 +75,37 @@ $ docker push asia.gcr.io/ttc-team-14/gce-proxy:1.11
 
 ## wordpress 설치
 
-helm 으로 설치하는데 먼저 다음 파일을 작성함.
+helm 으로 설치하는데 먼저 할 일이 있음.
+
+우선 PVC 를 만들자. 자동으로 만들어주기도 하는데 내 경우에는 
+지웠다 재설치를 반복하다 보니 지워도 내용이 남아있으면 해서...
+```
+$ vi wordpress-pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wordpress-pvc
+  labels:
+    app: wordpress
+  namespace: ttc-app
+spec:
+  storageClassName: nfs-client
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+```
+
+다음 파일을 작성함.
 
 이 때 cloudsql 을 어떻게 붙느냐에 따라 내용이 조금 달라짐.
-* (1안) cloudsql 과 gke 가 같은 VPC 상에 존재할 경우 private ip 로 직접 붙을 수 있음. 심지어 이 경우 위의 account.sh 도 불필요할 수 있음
+* (1안) cloudsql 과 gke 가 같은 VPC 상에 존재할 경우 private ip 로 직접 붙을 수 있음. 
+  심지어 이 경우 위의 account.sh 도 불필요할 수 있음
 * (2안) 보통 권장되는 방법은 위의 account.sh 과 더불어 cloudsql proxy 를 사용하는 방법.
+
+그런데 처음엔 2안으로 가다가.. proxy를 사용하면서 public ip를 안쓰는 방법을 못찾은 채 시간이 급박해서 1안을 수용.
+그래도 언제든 2안으로 갈 수 있도록 아래에서 sidecar 설정을 빼지는 않았음.
 
 ```
 $ vi wordpress-values.yaml
@@ -90,20 +116,32 @@ wordpressFirstName: ""
 wordpressLastName: "ttc"
 wordpressEmail: "ttc@sk-ttc.com"
 persistence:
-  storageClass: standard
-  size: 20Gi
+  existingClaim: wordpress-pvc  # 재설치를 많이 하면 미리 만들어두는 게 나음
+  #storageClass: standard # RWO
+  #storageClass: nfs-client # RWX
+  #size: 6Gi
 mariadb:
   enabled: false
 externalDatabase:
-  host: 127.0.0.1    #  2안 기준으로 127.0.0.1 이고 1안 기준은 해당DB의 private ip 를 입력
+  #host: 127.0.0.1
+  host: 10.58.160.3
   user: ttc
-  password: _my_another_password_for_ttc_2020_DB_
+  password: ttc2020!
   database: wordpress
   port: 3306
+image:
+  registry: asia.gcr.io
+  repository: ttc-team-14/wordpress
+  tag: 5.5.0-debian-10-r4
 metrics:
-  enabled: true           # prometheus 설치하므로 거기서 수집할 수 있게
+  enabled: true
+  image:
+    registry: asia.gcr.io
+    repository: ttc-team-14/apache-exporter
+    tag: 0.8.0-debian-10-r123
 replicaCount: 2
-sidecars:                 # 2안 기준으로 이 설정이 필요. 1안을 사용할 경우 sidecar 이하 설정은 없어도 됨.
+service:
+  type: ClusterIPsidecars:                 # 2안 기준으로 이 설정이 필요. 1안을 사용할 경우 sidecar 이하 설정은 없어도 됨.
 - name: cloudsql-proxy    # k8s에서 google cloud sql 접속하는 가장 권장되는 방법이 sidecar 
   image: asia.gcr.io/ttc-team-14/gce-proxy:1.11
   imagePullPolicy: Always

@@ -255,3 +255,32 @@ $ helm install -n ttc-app elasticsearch --version 12.6.2 -f elasticsearch-values
 
 이후 wordpress 관리자 화면에서 elasticsearch 연결 서비스 ( http://elasticsearch-elasticsearch-coordinating-only.ttc-app:9200 ) 등록하면 완료
 
+## Wordpress에 Redis Object Cache 적용
+
+적용 자체는 알고 보면(!) 단순하다.
+* redis object cache plugin 설치 (플러그인명: redis-cache, 이미 위 단계에서 수행)
+* 플러그인이 비활성화 된 상태에서 작업
+* 플러그인 편집기 메뉴를 찾아서 --> 편집할 플러그인 선택: Redis Object Cache [선택] --> includes/object-cache.php 파일 선택 후 편집:
+  ```
+  ...
+  protected function build_parameters() {
+        $parameters = array(
+            'scheme' => 'tcp',
+            'host' => 'redis.ttc-app', /* redis 서버의 Service 를 입력 */
+            'port' => 6379,
+			'password' => '<_password_>',        /* 비번입력으로 인증하도록 설치했을 경우 설정 */
+            'database' => 0,               /* 혹시라도 redis가 다른 용도로 쓰인다면 겹치지 않게 숫자 설정 */
+            'timeout' => 1,
+            'read_timeout' => 1,
+            'retry_interval' => null,
+        );
+  ...
+  ```
+* 플러그인 활성화
+* 설정 - Redis 들어가서 [Enable Object Cache] 버튼 클릭해 활성화
+* Diagnostics 에서 별다른 문제가 없음을 확인 (PhpRedis: Not loaded 같은 건 무시해도 됨)
+
+
+
+
+

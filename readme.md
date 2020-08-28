@@ -46,6 +46,14 @@ $ docker pull docker.io/bitnami/minideb:buster
 $ docker tag docker.io/bitnami/minideb:buster asia.gcr.io/ttc-team-14/minideb-buster:20200813
 $ docker push asia.gcr.io/ttc-team-14/minideb-buster:20200813
 
+$ docker pull docker.io/bitnami/elasticsearch-curator:5.8.1-debian-10-r194
+$ docker tag docker.io/bitnami/elasticsearch-curator:5.8.1-debian-10-r194 asia.gcr.io/ttc-team-14/elasticsearch-curator:5.8.1-debian-10-r194
+$ docker push asia.gcr.io/ttc-team-14/elasticsearch-curator:5.8.1-debian-10-r194
+
+$ docker pull docker.io/bitnami/elasticsearch-exporter:1.0.2
+$ docker tag docker.io/bitnami/elasticsearch-exporter:1.0.2 asia.gcr.io/ttc-team-14/elasticsearch-exporter:1.0.2
+$ docker push asia.gcr.io/ttc-team-14/elasticsearch-exporter:1.0.2
+
 $ docker pull nginx:latest
 $ docker tag nginx:latest asia.gcr.io/ttc-team-14/nginx:20200813
 $ docker push asia.gcr.io/ttc-team-14/nginx:20200813
@@ -61,6 +69,7 @@ $ docker push asia.gcr.io/ttc-team-14/apache-exporter:0.8.0-debian-10-r123
 $ docker pull gcr.io/cloudsql-docker/gce-proxy:1.11
 $ docker tag gcr.io/cloudsql-docker/gce-proxy:1.11 asia.gcr.io/ttc-team-14/gce-proxy:1.11
 $ docker push asia.gcr.io/ttc-team-14/gce-proxy:1.11
+
 ```
 
 
@@ -96,7 +105,7 @@ metrics:
 replicaCount: 2
 sidecars:                 # 2안 기준으로 이 설정이 필요. 1안을 사용할 경우 sidecar 이하 설정은 없어도 됨.
 - name: cloudsql-proxy    # k8s에서 google cloud sql 접속하는 가장 권장되는 방법이 sidecar 
-  image: gcr.io/cloudsql-docker/gce-proxy:1.11
+  image: asia.gcr.io/ttc-team-14/gce-proxy:1.11
   imagePullPolicy: Always
   ports:
   - name: portname
@@ -153,14 +162,50 @@ $ sh plugin.sh uninstall   # 모두 역순으로 비활성화 후 제거
 
 ## elasticsearch 설치
 
-역시 helm 으로 설치했는데, wordpress 내부에서 사용하는 용도라서 외부 접속 등의 설정이 불필요해서 간단하게 작성
+역시 helm 으로 설치했는데, wordpress 내부에서 사용하는 용도라서 외부 접속 등의 설정이 불필요해서 간단하게 작성..
+하고 싶었는데.. 이미지 끌어오는 것만 이게 뭐냐..
+
 ```
 $ vi elasticsearch-values.yaml
-global.storageClass: standard
-data.persistence.size: 20Gi
-metrics.enabled: true
+global:
+  storageClass: standard
+image:
+  registry: asia.gcr.io
+  repository: ttc-team-14/elasticsearch
+  tag: 7.9.0-debian-10-r0
+curator:
+  enabled: true
+  image:
+    registry: asia.gcr.io
+    repository: ttc-team-14/elasticsearch-curator
+    tag: 5.8.1-debian-10-r194
+metrics:
+  image:
+    registry: asia.gcr.io
+    repository: ttc-team-14/elasticsearch-exporter
+    tag: 1.0.2
+sysctlImage:
+  registry: asia.gcr.io
+  repository: ttc-team-14/minideb-buster
+  tag: "20200813"
+volumePermissions:
+  image:
+    registry: asia.gcr.io
+    repository: ttc-team-14/minideb-buster
+    tag: "20200813"
+master:
+  persistence:
+    size: 1Gi
+data:
+  persistence:
+    size: 2Gi
+metrics:
+  enabled: true
+```
 
-$ helm install -n ttc-app elasticsearch --version 12.6.2 bitnami/elasticsearch
+설치는 단순
+```
+$ helm install -n ttc-app elasticsearch --version 12.6.2 -f elasticsearch-values.yaml bitnami/elasticsearch
 ```
 버전은 미리 ```helm fetch bitnami/elasticsearch``` 로 받아보고 알아보았음
 

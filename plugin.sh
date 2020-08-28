@@ -2,7 +2,7 @@
 plugin_cmd(){
 kubectl exec -it \
   $(kubectl get po -n ttc-app -l app.kubernetes.io/instance=wordpress -o name ) \
-  -n ttc-app -c wordpress -- wp plugin install "$1" "$2"
+  -n ttc-app -c wordpress -- wp plugin "$1" "$2"
 }
 
 list(){

@@ -156,7 +156,11 @@ https://github.com/anabaral/gcloud-etude/blob/master/plugin.sh
 사용은 단순:
 ```
 $ sh plugin.sh install     # (설치하기로 적어둔 것들) 모두 설치 및 활성화
-
+```
+로그를 눈여겨 봐야 함. 서버 상태나 기타 알 수 없는 이유로 설치가 실패하는 경우가 있음. <br>
+다행히도 보통 한 번 더 실행하면 (이미 설치한 것은 통과하면서) 잘 설치됨. <br>
+(오픈소스의 길은 험난하다)
+```
 $ sh plugin.sh uninstall   # 모두 역순으로 비활성화 후 제거
 ```
 

@@ -77,6 +77,8 @@ $ docker push asia.gcr.io/ttc-team-14/gce-proxy:1.11
 
 helm 으로 설치하는데 먼저 할 일이 있음.
 
+### PVC 구성
+
 우선 PVC 를 만들자. 자동으로 만들어주기도 하는데 내 경우에는 
 지웠다 재설치를 반복하다 보니 지워도 내용이 남아있으면 해서...
 ```
@@ -96,6 +98,8 @@ spec:
     requests:
       storage: 10Gi
 ```
+
+### 설치 파라미터 파일 작성
 
 다음 파일을 작성함.
 
@@ -180,7 +184,7 @@ $ helm install -n ttc-app wordpress --version 9.5.1 -f wordpress-values.yaml bit
 $ helm delete -n ttc-app wordpress
 ```
 
-## wordpress 에 plugin 설치
+### plugin 설치
 
 plugin 설치는 두 가지 방법이 존재함
 * 화면에서 검색 및 설치
@@ -204,8 +208,8 @@ $ sh plugin.sh uninstall   # 모두 역순으로 비활성화 후 제거
 
 ## elasticsearch 설치
 
-역시 helm 으로 설치했는데, wordpress 내부에서 사용하는 용도라서 외부 접속 등의 설정이 불필요해서 간단하게 작성..
-하고 싶었는데.. 이미지 끌어오는 것만 이게 뭐냐..
+역시 helm 으로 설치했는데, wordpress wordpress 내부 사용 용도라서 외부 접속 등의 설정이 불필요해서 간단하게 작성..
+하고 싶었는데.. 이미지 설정 때문에 복잡해짐
 
 ```
 $ vi elasticsearch-values.yaml

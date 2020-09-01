@@ -1,9 +1,11 @@
 # Google cloud 연습
 
-회사에서 gcloud를 대상으로 한 어플리케이션 마이그레이션 및 튜닝을 주제로 경연을 열었고 덕분에 순위와 상관없이(?) GKE를 연습해 보고 있음.
+회사에서 gcloud를 대상으로 한 어플리케이션 마이그레이션 및 튜닝을 주제로 경연을 열었고 덕분에 비용 부담 덜고(?) GKE를 연습해 보고 있음.
 이 저장소에는 그 과정에서 얻어지는 산물들을 기록 차원에서 남겨둠.
 
 ## 서비스 계정 관리
+
+※ 이 작업은 cloud sql 접속을 위한 준비과정인데 cloud sql을 connection_name 을 사용하지 않고 private ip 직접접속을 선택한 경우 불필요합니다.
 
 google cloud 도 서비스 계정이 있고 GKE (kubernetes) 도 역시 서비스 계정이 있음.
 
@@ -25,7 +27,7 @@ https://github.com/anabaral/gcloud-etude/blob/master/account.sh
 ```
 $ sh account.sh create  # 생성할 때
 
-$ sh account.sh delete  # 삭제할 
+$ sh account.sh delete  # 삭제할 때
 ```
 
 이걸 위해 다음을 참고하였음:
@@ -285,6 +287,109 @@ $ helm install -n ttc-app elasticsearch --version 12.6.2 -f elasticsearch-values
 * Diagnostics 에서 별다른 문제가 없음을 확인 (PhpRedis: Not loaded 같은 건 무시해도 됨)
 
 
+## frontend web 구성
 
+nginx 기반의 reverse proxy 역할만 하는 레거시 웹은 
+어차피 static file들을 CDN에서 서비스하는 걸로 계획했기에 불필요해서 없애려 했음.
+
+그런데 ingress 설정에서 발목을 잡혀서.. 우리는 HTTP 접근이 올 경우 이를 HTTPS 요청으로 리다이렉트 시키고 싶었는데,
+이걸 하는 자연스러운 설정이 도무지 안보임. (nginx-ingress-controller를 별도 설치하면 되는 것 같은데 구글 제공 기능을 써 보는 게 가이드 문서도 많고 나아 보여서)
+
+이걸 손쉽게 구현하려다 보니 현재 있는 nginx를 이용하면 되겠다는 생각이 나서
+아래처럼 ConfigMap, Service, Deployment 를 구현함.
+
+```
+$ vi frontend-all.yaml
+apiVersion: v1
+data:
+  default.conf: |-
+    server {
+      listen 80;
+      # server_name _; # change this
+
+      # global gzip on
+      gzip on;
+      gzip_min_length 10240;
+      gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml;
+      gzip_disable "MSIE [1-6]\.";
+
+      add_header Cache-Control public;
+
+      ## HTTP Redirect ##
+      if ($http_x_forwarded_proto = "http") {
+          return 301 https://$host$request_uri;
+      }
+
+      location / {
+        proxy_pass http://wordpress.ttc-app:80;
+        proxy_buffering on;
+        proxy_buffers 12 12k;
+        proxy_redirect default;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$remote_addr;
+        proxy_set_header Host www.team14.sk-ttc.com;
+      }
+    }
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: ttc-app
+  labels:
+    app: webserver
+    release: frontend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-svc
+  namespace: ttc-app
+  labels:
+    app: webserver
+    release: frontend
+spec:
+  selector:
+    app: webserver
+    tier: web
+  ports:
+  - port: 80
+    targetPort: 80
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: ttc-app
+  labels:
+    app: webserver
+    release: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: webserver
+      tier: web
+  template:
+    metadata:
+      labels:
+        app: webserver
+        tier: web
+    spec:
+      containers:
+      - name: nginx
+        image: asia.gcr.io/ttc-team-14/nginx:20200813
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /etc/nginx/conf.d/default.conf
+          name: nginx-conf
+          readOnly: true
+          subPath: default.conf
+      volumes:
+      - name: nginx-conf
+        configMap:
+          defaultMode: 420
+          name: frontend-config
+```
 
 

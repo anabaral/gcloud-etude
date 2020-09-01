@@ -25,3 +25,4 @@
 
 ![blue-green deploy](https://github.com/anabaral/gcloud-etude/blob/master/bluegreen.gif?raw=true)
 
+그림에는 Test Service 가 본 배포 이후 그냥 떨어지는 것으로만 표현 했는데, 다음 배포를 대비하여 미리 그린 배포 쪽에 연결해 둘 수 있음.

@@ -292,10 +292,15 @@ $ helm install -n ttc-app elasticsearch --version 12.6.2 -f elasticsearch-values
 nginx 기반의 reverse proxy 역할만 하는 레거시 웹은 
 어차피 static file들을 CDN에서 서비스하는 걸로 계획했기에 불필요해서 없애려 했음.
 
-그런데 ingress 설정에서 발목을 잡혀서.. 우리는 HTTP 접근이 올 경우 이를 HTTPS 요청으로 리다이렉트 시키고 싶었는데,
-이걸 하는 자연스러운 설정이 도무지 안보임. (nginx-ingress-controller를 별도 설치하면 되는 것 같은데 구글 제공 기능을 써 보는 게 가이드 문서도 많고 나아 보여서)
+그런데 ingress 설정에서 발목을 잡혔음.
+- 우리는 HTTP 접근이 올 경우 이를 HTTPS 요청으로 리다이렉트 시키고 싶었는데,
+- 이는 AWS 에서는 nginx-ingress-controller 설치와 ALB 추가 후 ingress annotation 부여로 가능함.
+- Azure는 쉽지는 않지만 Application Gateway 를 설치 성공 후 ingress에 annotation 부여로 되기는 함.
+- 그런데 구글은 이게 될 듯 말 듯 하면서 안됨. 같은 도메인의 http와 https 요청에 다른 기능을 부여하는 게 교묘하게 막힘.
+  구글도 nginx-ingress-controller를 별도 설치하면 된다는 글을 봤는데 그러면 구글 제공 기능을 아예 배제하는 것이고
+  이것 하나 때문에 현재 가이드도 나름 풍부한 기능을 포기하는 건 아니다 싶어서 
+- 고민하다 보니 현재 있는 nginx를 이용하면 되겠다는 생각이 났음.
 
-이걸 손쉽게 구현하려다 보니 현재 있는 nginx를 이용하면 되겠다는 생각이 나서
 아래처럼 ConfigMap, Service, Deployment 를 구현함.
 
 ```
@@ -391,5 +396,8 @@ spec:
           defaultMode: 420
           name: frontend-config
 ```
+
+이렇게 하면 frontend 단에서 http 요청을 https로 다시 요청하게 되돌림.
+
 
 

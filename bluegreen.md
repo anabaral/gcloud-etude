@@ -23,6 +23,11 @@
 - 변경은 Argocd 에 의해 인지되어 서비스가 새 배포를 가리키게 되며 이 배포가 이제 블루(blue)배포본이 됨
 - 변경이력은 git 저장소에서 관리됨
 
+## 도안
+
 ![blue-green deploy](https://github.com/anabaral/gcloud-etude/blob/master/bluegreen.gif?raw=true)
 
-그림에는 Test Service 가 본 배포 이후 그냥 떨어지는 것으로만 표현 했는데, 다음 배포를 대비하여 미리 그린 배포 쪽에 연결해 둘 수 있음.
+## 추가 내용
+
+- 본 Service는 운영 ingress (예: www.team14.sk-ttc.com ) 가 연결되고 Test Service는 테스트용 ingress (예: green.team14.sk-ttc.com ) 가 연결됨. 
+- 그림에는 Test Service 가 본 배포 이후 그냥 떨어지는 것으로만 표현 했는데, 다음 배포를 대비하여 미리 그린 배포 쪽에 연결해 둘 수 있음.

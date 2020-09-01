@@ -308,6 +308,7 @@ nginx 기반의 reverse proxy 역할만 하는 레거시 웹은
   구글도 nginx-ingress-controller를 별도 설치하면 된다는 글을 봤는데 그러면 구글 제공 기능을 아예 배제하는 것이고
   이것 하나 때문에 현재 가이드도 나름 풍부한 기능을 포기하는 건 아니다 싶어서 
 - 고민하다 보니 현재 있는 nginx를 이용하면 되겠다는 생각이 났음.
+  (나중에 찾다 보니 플러그인에도 [Mavis HTTPS to HTTP Redirection](https://wordpress.org/plugins/mavis-https-to-http-redirect/) 라고 있어 고려할 만 함)
 
 아래처럼 ConfigMap, Service, Deployment 를 구현함.
 
@@ -419,5 +420,10 @@ Chrome에서 하필 ROOT URL만 '이 사이트의 보안 연결(HTTPS)은 완벽
 해당 이미지를 재조정 하니 해결됨.
 
 
+## blue-green 배포 
+
+블루그린 배포를 간단히 구현하였는데 개략은 다음 링크에 기술함.
+
+https://github.com/anabaral/gcloud-etude/blob/master/bluegreen.md
 
 

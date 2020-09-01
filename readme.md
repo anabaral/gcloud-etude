@@ -408,4 +408,16 @@ spec:
 이렇게 하면 frontend 단에서 http 요청을 https로 다시 요청하게 되돌림.
 
 
+### 자잘한 troubleshooting
+
+Chrome에서 하필 ROOT URL만 '이 사이트의 보안 연결(HTTPS)은 완벽하지 않습니다' 표시가 나옴.
+
+알고 보니 다음과 같은 이유: 
+* legacy 에서 대표 화면 작성된 것을 database 통째 마이그레이션 하면 거기 등록된 URL도 같이 옮겨감. 이 URL은 http://domain_name/path/ 형태임
+* 문제는 한 도메인의 https 페이지 안에 같은 도메인의 http 리소스 요청이 섞여 있을 경우 이 메시지가 나올 수 있음.
+
+해당 이미지를 재조정 하니 해결됨.
+
+
+
 

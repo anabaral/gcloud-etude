@@ -173,6 +173,8 @@ extraVolumes:
     secretName: cloudsql-instance-credentials  #  이게 위의 account.sh 로 생성한 시크릿임. 
 ```
 
+### 설치
+
 설치 명령은 단순
 ```
 $ kubectl create ns ttc-app                                      # 네임스페이스 안 만들었다면 만들어 주기
@@ -207,6 +209,12 @@ $ sh plugin.sh install     # (설치하기로 적어둔 것들) 모두 설치 �
 ```
 $ sh plugin.sh uninstall   # 모두 역순으로 비활성화 후 제거
 ```
+
+### 테마 설치
+
+마이그레이션 대상 wordpress + woocommerce 는 storefront 라는 테마를 적용하고 있음.
+관리화면 - 테마 에서 설치
+
 
 ## elasticsearch 설치
 

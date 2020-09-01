@@ -213,7 +213,7 @@ $ sh plugin.sh uninstall   # 모두 역순으로 비활성화 후 제거
 ### 테마 설치
 
 마이그레이션 대상 wordpress + woocommerce 는 storefront 라는 테마를 적용하고 있음.
-관리화면 - 테마 에서 설치
+관리화면 - 테마 디자인 - 테마 선택 후 [Add New] 버튼으로 테마 추가 화면 접속, storefront 검색 후 설치 및 활성화
 
 
 ## elasticsearch 설치

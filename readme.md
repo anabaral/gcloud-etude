@@ -3,9 +3,10 @@
 회사에서 gcloud를 대상으로 한 어플리케이션 마이그레이션 및 튜닝을 주제로 경연을 열었고 덕분에 비용 부담 덜고(?) GKE를 연습해 보고 있음.
 이 저장소에는 그 과정에서 얻어지는 산물들을 기록 차원에서 남겨둠.
 
-## 서비스 계정 관리
+## 서비스 계정 관리 (deprecated)
 
 ※ 이 작업은 cloud sql 접속을 위한 준비과정인데 cloud sql을 connection_name 을 사용하지 않고 private ip 직접접속을 선택한 경우 불필요합니다.
+   우리는 cloud sql 에 공개 ip를 부여하지 않기로 해서 (디버그 목적으로 잠깐씩 부여하기는 하지만) 이 설정을 쓰지 않습니다만 기록 차원에서 적어 둡니다.
 
 google cloud 도 서비스 계정이 있고 GKE (kubernetes) 도 역시 서비스 계정이 있음.
 
@@ -37,7 +38,7 @@ $ sh account.sh delete  # 삭제할 때
 ## container image 보전
 
 불필요할 수도 있어 보이지만 이미지를 항상 latest로 받는 것이 리스크가 있음.
-현재 설치되는 버전들의 이미지를 보전할 필요가 있음.
+현재 설치되는 버전들의 이미지를 보전할 필요가 있음. (이후 설치 시 혹은 설치 후에 이미지 위치를 교정해 주어야 함) 
 
 ```
 $ docker pull docker.io/bitnami/elasticsearch:7.9.0-debian-10-r0
@@ -81,8 +82,11 @@ helm 으로 설치하는데 먼저 할 일이 있음.
 
 ### PVC 구성
 
-우선 PVC 를 만들자. 자동으로 만들어주기도 하는데 내 경우에는 
-지웠다 재설치를 반복하다 보니 지워도 내용이 남아있으면 해서...
+우선 PVC 를 만들자. 
+* helm 설치 시 자동으로 만들어주기는 하는데 이렇게 만든 PVC는 삭제 시 같이 지워짐. 
+* 우리는 지웠다 재설치를 반복하며 최적의 설치 옵션을 찾는 입장이다 보니 지워도 내용이 남아있으면 좋겠고
+* 이후에 유지보수 할 때도 blue-green 배포 시 helm 배포를 할 가능성이 있는데 이 때도 old 배포본을 지울 때 위험이 있으므로..
+
 ```
 $ vi wordpress-pvc.yaml
 apiVersion: v1
@@ -110,8 +114,9 @@ spec:
   심지어 이 경우 위의 account.sh 도 불필요할 수 있음
 * (2안) 보통 권장되는 방법은 위의 account.sh 과 더불어 cloudsql proxy 를 사용하는 방법.
 
-그런데 처음엔 2안으로 가다가.. proxy를 사용하면서 public ip를 안쓰는 방법을 못찾은 채 시간이 급박해서 1안을 수용.
-그래도 언제든 2안으로 갈 수 있도록 아래에서 sidecar 설정을 빼지는 않았음.
+우리는 처음에 2안을 수용했으나, proxy 사용 시 public ip 가 필요했음. 
+논의 끝에 private ip만을 사용하기로 하였는데 proxy에서 public ip 없이 접근하는 방법을 못찾아서 1안으로 변경.
+아래 설정에는 주석 처리만 하고 남겨둠
 
 ```
 $ vi wordpress-values.yaml
@@ -147,30 +152,31 @@ metrics:
     tag: 0.8.0-debian-10-r123
 replicaCount: 2
 service:
-  type: ClusterIPsidecars:                 # 2안 기준으로 이 설정이 필요. 1안을 사용할 경우 sidecar 이하 설정은 없어도 됨.
-- name: cloudsql-proxy    # k8s에서 google cloud sql 접속하는 가장 권장되는 방법이 sidecar 
-  image: asia.gcr.io/ttc-team-14/gce-proxy:1.11
-  imagePullPolicy: Always
-  ports:
-  - name: portname
-    containerPort: 3306
-  command: ["/cloud_sql_proxy",
-            "-instances=ttc-team-14:asia-northeast3:ttc-team14=tcp:3306",
-            # If running on a VPC, the Cloud SQL proxy can connect via Private IP. See:
-            # https://cloud.google.com/sql/docs/mysql/private-ip for more info.
-            # "-ip_address_types=PRIVATE",
-            "-credential_file=/secrets/cloudsql/key.json"]
-  securityContext:
-    runAsUser: 2  # non-root user
-    allowPrivilegeEscalation: false
-  volumeMounts:
-    - name: cloudsql-instance-credentials
-      mountPath: /secrets/cloudsql
-      readOnly: true
-extraVolumes:
-- name: cloudsql-instance-credentials
-  secret:
-    secretName: cloudsql-instance-credentials  #  이게 위의 account.sh 로 생성한 시크릿임. 
+  type: ClusterIP
+#sidecars:                 # 2안 기준으로 이 설정이 필요. 1안을 사용할 경우 sidecar 이하 설정은 없어도 됨.
+#- name: cloudsql-proxy    # k8s에서 google cloud sql 접속하는 가장 권장되는 방법이 sidecar 
+#  image: asia.gcr.io/ttc-team-14/gce-proxy:1.11
+#  imagePullPolicy: Always
+#  ports:
+#  - name: portname
+#    containerPort: 3306
+#  command: ["/cloud_sql_proxy",
+#            "-instances=ttc-team-14:asia-northeast3:ttc-team14=tcp:3306",
+#            # If running on a VPC, the Cloud SQL proxy can connect via Private IP. See:
+#            # https://cloud.google.com/sql/docs/mysql/private-ip for more info.
+#            # "-ip_address_types=PRIVATE",
+#            "-credential_file=/secrets/cloudsql/key.json"]
+#  securityContext:
+#    runAsUser: 2  # non-root user
+#    allowPrivilegeEscalation: false
+#  volumeMounts:
+#    - name: cloudsql-instance-credentials
+#      mountPath: /secrets/cloudsql
+#      readOnly: true
+#extraVolumes:
+#- name: cloudsql-instance-credentials
+#  secret:
+#    secretName: cloudsql-instance-credentials  #  이게 위의 account.sh 로 생성한 시크릿임. 
 ```
 
 ### 설치

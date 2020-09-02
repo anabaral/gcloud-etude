@@ -308,7 +308,10 @@ nginx 기반의 reverse proxy 역할만 하는 레거시 웹은
   구글도 nginx-ingress-controller를 별도 설치하면 된다는 글을 봤는데 그러면 구글 제공 기능을 아예 배제하는 것이고
   이것 하나 때문에 현재 가이드도 나름 풍부한 기능을 포기하는 건 아니다 싶어서 
 - 고민하다 보니 현재 있는 nginx를 이용하면 되겠다는 생각이 났음.
-  (나중에 찾다 보니 플러그인에도 [Mavis HTTPS to HTTP Redirection](https://wordpress.org/plugins/mavis-https-to-http-redirect/) 라고 있어 고려할 만 함)
+
+나중에 찾다 보니 플러그인에 [Mavis HTTPS to HTTP Redirection](https://wordpress.org/plugins/mavis-https-to-http-redirect/) 라고 있어서
+테스트를 해 봤는데 쓸 만한 것이 못됨. 우리는 부하분산기 / Ingress 단에 인증서를 갖다 놓고 wordpress 같은 구현 pod 에는 http 통신을 하는데
+이 기능은 그런 구조에서는 무한 redirect에 빠지게 됨.
 
 아래처럼 ConfigMap, Service, Deployment 를 구현함.
 

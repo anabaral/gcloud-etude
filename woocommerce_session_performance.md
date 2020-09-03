@@ -39,6 +39,8 @@ add_filter( 'session_token_manager', 'wp_redis_user_session_storage' ); /* 세�
 ```
 그러나 이것을 대체해 봐야 woocommerce에서 사용하는 것과는 무관합니다.
 
+몇몇 플러그인들이 세션 사용에 관한 개선을 주장하는데, woocommerce 의 세션을 개선하는 것은 아닌 것 같습니다.
+
 ## woocommerce 에서 사용하는 세션 관리 코드
 
 woocommerce 에서는 세션에 해당하는 정보들을 DB에 저장합니다. 다음은 세션 저장용 테이블 명세입니다.
@@ -77,7 +79,7 @@ ERROR 3161 (HY000): Storage engine MEMORY is disabled (Table creation is disallo
 **google cloud sql 은 메모리 엔진을 지원하지 않습니다.**
 
 결국 하려면 세션관리용 mysql을 별도로 설치해서 메모리 엔진 테이블을 생성해야 하는데
-이게 가능하려면 위의 소스 ```class-wc-session-handler.php``` 를 새 DB를 보도록 바꾸어 주어야 합니다. 
+이게 가능하려면 위의 소스 ```class-wc-session-handler.php``` 를 고쳐 세션에 한해서는 새로운 DB를 보도록 바꾸어야 합니다. 
 
 여기까지에서 시간이 촉박하여 실제 시도는 중단하였습니다. php 언어를 학습해야 하기 때문에..
 

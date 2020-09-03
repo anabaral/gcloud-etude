@@ -1,8 +1,8 @@
 # Wordpress Woocommerce 에서 세션 성능 증가 노력
 
 현재까지의 결론:
-* **read replica 증설이 가능한 최선**
-* 시간이 충분할 때 한 번 시도해 볼 수 있는 옵션으로 **MEMORY ENGINE 기반의 테이블을 생성하는 것**
+* Redis Object Cache 플러그인을 쓰고 있는데, 그것이 유효하게 도움이 된다.
+* WooCommerce가 세션을 DB에 저장하고 있는 근원적인 문제를 해결해 보려 했지만 그것은 한계가 있는 듯 하다.
 
 완전 성공은 못한 상태이지만 지금까지 해온 노력을 적어 봅니다.
 
@@ -83,4 +83,23 @@ ERROR 3161 (HY000): Storage engine MEMORY is disabled (Table creation is disallo
 
 다시 확인해 본 바로는 **MEMORY 엔진은 BLOB/TEXT 컬럼을 지원하지 않습니다.** 즉 longtext 컬럼을 갖고 있는 한 이 역시 대안이 될 수 없습니다.
 
-**현재 테스트 환경에서 시도한 최선은 read replica 를 증설하여 읽기 성능을 향상하는 정도입니다.**
+## Redis Object Cache 의 쓸모
+
+앞서까지는 근원적인 해결이 안된다는 것을 설명했습니다만, 사실 서버가 가지고 있던 문제는 다른 게 아니었습니다.
+
+* 위의 ```class-wc-session-handler.php``` 를 보면 내용이 변경될 때 DB를 쓰긴 하지만 대부분 '캐시'를 참조하고 있다는 사실을 확인할 수 있습니다.
+* 그리고 그 캐시는, 조금 더 들여다 보면 ( wordpress 내부의 ```wp-includes/cache.php```, ```wp-includes/class-wp-object-cache.php``` 등) 일정한 규칙을 따릅니다.
+  - 외부 제공 object-cache.php 가 wp-content 디렉터리에서 발견되면 그 캐시를 사용함
+  - 없을 때는 그냥 내부 변수 (array 내지 hash 같은) 를 사용하여 캐시 역할을 수행함
+* 즉 진짜 문제는 내부 변수를 사용해 캐시 역할을 수행하는 것입니다. <br>
+  그러면 인스턴스가 여럿으로 늘어난다고 값을 잃지는 않겠지만 요청이 여러 서버로 전달되면서 같은 내용을 중복해서 갖고 있게 됩니다. <br>
+  사용자가 늘어나면 불필요한 메모리 사용량이 늘게 됩니다. 
+* K8s pod 라면 반복적 OOMKilled 같은 현상을 만나게 될 수도 있습니다.
+
+이것을 해소하려면 별도의 메모리를 둔 object cache가 존재하는 것이 좋습니다.
+그리고 우리는 이미 Redis Object Cache 를 설치하고 별도의 Redis 서버에 연결해 둔 상태입니다.
+
+문제는 이미 해결되어 있었습니다.
+
+
+

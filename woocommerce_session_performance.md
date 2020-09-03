@@ -1,6 +1,10 @@
 # Wordpress Woocommerce 에서 세션 성능 증가 노력
 
-현재 실패상태이지만 지금까지 해온 노력을 적어 봅니다.
+현재까지의 결론:
+* **read replica 증설이 가능한 최선**
+* 시간이 충분할 때 한 번 시도해 볼 수 있는 옵션으로 **MEMORY ENGINE 기반의 테이블을 생성하는 것**
+
+완전 성공은 못한 상태이지만 지금까지 해온 노력을 적어 봅니다.
 
 Wordpress 의 세션 관리와 별개로 woocommerce 는 별도로 세션을 관리하고 있습니다.
 
@@ -70,7 +74,7 @@ wordpress/wp-content/plugins/woocommerce/includes/class-wc-session-handler.php
     -> ) ENGINE=MEMORY;
 ERROR 3161 (HY000): Storage engine MEMORY is disabled (Table creation is disallowed).
 ```
-google cloud sql 은 메모리 엔진을 지원하지 않습니다.
+**google cloud sql 은 메모리 엔진을 지원하지 않습니다.**
 
 결국 하려면 세션관리용 mysql을 별도로 설치해서 메모리 엔진 테이블을 생성해야 하는데
 이게 가능하려면 위의 소스 ```class-wc-session-handler.php``` 를 새 DB를 보도록 바꾸어 주어야 합니다. 

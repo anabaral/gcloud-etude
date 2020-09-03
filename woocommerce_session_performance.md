@@ -81,6 +81,6 @@ ERROR 3161 (HY000): Storage engine MEMORY is disabled (Table creation is disallo
 결국 하려면 세션관리용 mysql을 별도로 설치해서 메모리 엔진 테이블을 생성해야 하는데
 이게 가능하려면 위의 소스 ```class-wc-session-handler.php``` 를 고쳐 세션에 한해서는 새로운 DB를 보도록 바꾸어야 합니다. 
 
-여기까지에서 시간이 촉박하여 실제 시도는 중단하였습니다. php 언어를 학습해야 하기 때문에..
+다시 확인해 본 바로는 **MEMORY 엔진은 BLOB/TEXT 컬럼을 지원하지 않습니다.** 즉 longtext 컬럼을 갖고 있는 한 이 역시 대안이 될 수 없습니다.
 
-**현재 테스트 환경에서 시도한 최선은 read replica 를 증설하여 읽기 성능을 향상한 것입니다.**
+**현재 테스트 환경에서 시도한 최선은 read replica 를 증설하여 읽기 성능을 향상하는 정도입니다.**

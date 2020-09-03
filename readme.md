@@ -194,6 +194,31 @@ $ helm install -n ttc-app wordpress --version 9.5.1 -f wordpress-values.yaml bit
 $ helm delete -n ttc-app wordpress
 ```
 
+### replica 설정
+
+오토스케일링을 위한 설정이 필요함.
+
+```
+$ vi wordpress-hpa.yaml
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  annotations:
+  name: wordpress
+  namespace: ttc-app
+spec:
+  maxReplicas: 30   # 실 운영에서 이렇게 많이 쓰지는 않겠지만 스케일링 테스트용 값
+  minReplicas: 3
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: wordpress
+  targetCPUUtilizationPercentage: 30  # 실 운영에서는 이렇게 낮게 쓰지 않음. 스케일링 테스트용 값
+
+$ kubectl apply -f wordpress-hpa.yaml
+```
+
+
 ### plugin 설치
 
 plugin 설치는 두 가지 방법이 존재함

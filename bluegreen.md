@@ -267,6 +267,18 @@ metrics:
     repository: ttc-team-14/apache-exporter
     tag: 0.8.0-debian-10-r135
 replicaCount: 1   # 테스트 후 올림
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - wordpress
+        topologyKey: kubernetes.io/hostname
+      weight: 70
 service:
   type: ClusterIP
 ```

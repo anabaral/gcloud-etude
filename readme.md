@@ -166,6 +166,18 @@ metrics:
     repository: ttc-team-14/apache-exporter
     tag: 0.8.0-debian-10-r123
 replicaCount: 2
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - wordpress
+        topologyKey: kubernetes.io/hostname
+      weight: 70
 service:
   type: ClusterIP
 #sidecars:                 # 2안 기준으로 이 설정이 필요. 1안을 사용할 경우 sidecar 이하 설정은 없어도 됨.

@@ -91,10 +91,10 @@ ERROR 3161 (HY000): Storage engine MEMORY is disabled (Table creation is disallo
 * 그리고 그 캐시는, 조금 더 들여다 보면 ( wordpress 내부의 ```wp-includes/cache.php```, ```wp-includes/class-wp-object-cache.php``` 등) 일정한 규칙을 따릅니다.
   - 외부 제공 object-cache.php 가 wp-content 디렉터리에서 발견되면 그 캐시를 사용함
   - 없을 때는 그냥 내부 변수 (array 내지 hash 같은) 를 사용하여 캐시 역할을 수행함
-* 즉 진짜 문제는 내부 변수를 사용해 캐시 역할을 수행하는 것입니다. <br>
+* 즉 진짜 문제는 내부 변수를 사용한 단순한 캐시의 사용이었습니다. <br>
   그러면 인스턴스가 여럿으로 늘어난다고 값을 잃지는 않겠지만 요청이 여러 서버로 전달되면서 같은 내용을 중복해서 갖고 있게 됩니다. <br>
-  사용자가 늘어나면 불필요한 메모리 사용량이 늘게 되고, 메모리 부족은 성능에 영향을 줍니다.
-* K8s pod 라면 반복적 OOMKilled 같은 현상을 만나게 될 수도 있습니다.
+  사용자가 늘어나면 불필요한 메모리 사용량이 늘게 되는데(캐시를 적절히 버리는 보완로직도 없음) 메모리 부족은 성능에 영향을 줍니다.
+* Kubernetes POD 위에 뜨므로 심하게는 반복적 OOMKilled 같은 현상을 만나게 될 수도 있습니다.
 
 이것을 해소하려면 별도의 메모리를 둔 object cache가 존재하는 것이 좋습니다.
 그리고 우리는 이미 Redis Object Cache 를 설치하고 별도의 Redis 서버에 연결해 둔 상태입니다.

@@ -1,7 +1,21 @@
 # Google cloud 연습
 
-회사에서 gcloud를 대상으로 한 어플리케이션 마이그레이션 및 튜닝을 주제로 경연을 열었고 덕분에 비용 부담 덜고(?) GKE를 연습해 보고 있음.
-이 저장소에는 그 과정에서 얻어지는 산물들을 기록 차원에서 남겨둠.
+회사에서 gcloud를 대상으로 한 어플리케이션 마이그레이션 및 튜닝을 주제로 경연을 열었고 
+이 저장소에는 그 과정의 작업들을 기록함.
+
+## Legacy (마이그레이션 대상) 명세
+
+Legacy는 다음과 같이 구성되어 있음
+- nginx 기반으로 reverse proxy 역할만 하는 웹서버
+- apache + wordpress 설치된 위에 woocommerce 등 플러그인 탑재해 구성한 어플리케이션 서버(WAS)
+- wordpress 검색지원을 위한 Elasticsearch 서버
+- cloud sql 기반으로 구성된 mysql 호환 DB 
+
+내가 맡은 부분은
+- 위의 시스템들의 k8s migration
+- 세션 관련 성능향상 방법 찾기
+- 무중단 배포 가능성 알아보기 
+- 기타
 
 ## 서비스 계정 관리 (deprecated)
 
@@ -453,6 +467,16 @@ Chrome에서 하필 ROOT URL만 '이 사이트의 보안 연결(HTTPS)은 완벽
 
 해당 이미지를 재조정 하니 해결됨.
 
+## 세션 관련 개선 가능성 조사
+
+'세션을 DB에 기록하고 있어 이벤트 시간에 DB사용량이 높은 편입니다' 라는 화두가 있어 이 관련 개선 포인트를 찾아보았음.
+
+처음엔 세션 저장소를 Redis로 바꾸는 방향으로 조사를 해 보았으나 어렵다는 결론에 도달했는데, 소스까지 뒤져가면서 조사해본 결과
+저 화두가 살짝 틀리다는 결론. 조악하지만 이미 캐싱을 하고 있었고, 다른 문제 -- 메모리 과다 사용 문제가 존재함.
+
+우리는 Redis Object Cache 플러그인을 설치/구성 하면서 이미 어느 정도 해소하고 있었음.
+
+관련 링크: https://github.com/anabaral/gcloud-etude/blob/master/woocommerce_session_performance.md
 
 ## blue-green 배포 
 

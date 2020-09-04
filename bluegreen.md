@@ -313,7 +313,8 @@ $ kubectl edit svc wordpress-green   # 이건 git + argocd 로 작업할 수도 
 
 테스트가 충분히 되어 이걸 서비스해도 되겠다 싶으면 교체를 진행한다.
 
-**아래는 실제 수행은 git + webhook + argocd 로 진행할 것이나 여기서는 테스트때 사용한 명령어 기준으로 설명합니다**
+뒤에 ArgoCD 를 이용한 반 자동 sync 설정을 할 것인데 여기는 테스트때 사용한 명령어 기준으로 설명함.<br>
+그냥 수작업 bluegreen 으로 간다면 이것만으로도 기능적으로 충분하긴 함.
 
 복제 수를 조정해 기존 서비스에 맞춘다
 ```
@@ -347,6 +348,72 @@ $ kubectl edit service -n ttc-app wordpress
 ```
 
 다른 한편으론 green 서비스를 삭제하거나 기존의 블루 서비스로 연결한다.
+
+
+## ArgoCD를 이용한 semi-automation 설정
+
+### Git 설정
+
+Gitea 를 설치해 둔 것을 이용한다. (설치 과정은 https://github.com/SEOTAEEYOUL/GKE/tree/master/gitea )
+
+저장소는 화면에서 미리 만들어 두고 다음으로 연동, README.md 만 등록
 ```
-$ kubectl delete service -n ttc-app wordpress-green
+$ touch README.md
+$ git init
+$ git config --global user.email "anabaral@gmail.com"
+$ git config --global user.name "selee"
+$ git add README.md
+$ git commit -m "first commit"
+$ git remote add origin http://gitea.team14.sk-ttc.com:80/selee/wordpress-deploy.git
+$ git push -u origin master
 ```
+
+서비스 파일들 등록
+```
+# 이미 파일로 만들어 둔 게 있으면 그걸 쓰면 되고, 아니면 아래처럼 파일 생성
+$ kubectl get svc -n ttc-app wordpress -o yaml > wordpress-svc.yaml
+# 위의 파일에서 쓸모없는(?) 정보를 없애는 등의 다듬기는 필요함. 이를테면
+# metadata.annotations.kubectl.kubernetes.io/last-applied-configuration 이라거나
+# metadata.resourceVersion , metadata.uid 따위
+
+$ git add wordpress-svc.yaml
+$ git commit -m "current config"
+$ git push -u origin master
+Username for 'http://gitea.team14.sk-ttc.com:80': selee
+Password for 'http://selee@gitea.team14.sk-ttc.com:80':
+```
+
+여기서는 wordpress-green-svc 도 같은 방식으로 만들어 올려 두었음
+
+### ArgoCD 설정
+
+ArgoCD 도 설치해 둔 것을 이용함. (설치는 https://github.com/SEOTAEEYOUL/GKE/tree/master/argocd )
+
+Settings 메뉴로 가면 다음을 차례로 설정해야 한다:
+- Repositories
+  * Name: wordpress-deploy
+  * Repository: http://gitea.team14.sk-ttc.com/selee/wordpress-deploy
+- Clusters 
+  * 여긴 편집할 필요 없음. argocd 가 k8s cluster에 떠 있으므로 in-cluster 라는 항목이 있음을 확인
+- Projects
+  * Add Project 하고 다음 정도만 입력
+    - Name: ttc-app
+    - Source Repositories: *
+    - Destinations: SERVER=https://kubernetes.default.svc , NAMESPACE=ttc-app
+    - Whitelisted 어쩌구들은 다 * * 로 채움
+
+Manage your applications 메뉴에서 [NEW APP] 버튼 누르고 다음을 설정:
+- Application Name: wordpress
+- Project: ttc-app
+- Sync Policy: Manual (커밋하고 바로 반영되기보다는 최종 확인하기 위해)
+- Repository URL: http://gitea.team14.sk-ttc.com/selee/wordpress-deploy
+- Path: *
+- Cluster: in-cluster
+- Namespace: ttc-app
+- [CREATE] 버튼으로 마무리
+
+처음엔 Out of Sync 라고 나올 수 있는데, Sync 수행해 주면 됨.
+
+![ArgoCd 화면](https://github.com/anabaral/gcloud-etude/blob/master/wordpress-bluegreen-argocd.png?raw=true)
+
+

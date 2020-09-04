@@ -92,7 +92,7 @@ $ docker push asia.gcr.io/ttc-team-14/gce-proxy:1.11
 
 ## wordpress 설치
 
-helm 으로 설치하는데 먼저 할 일이 있음.
+helm 으로 설치.
 (참조: https://github.com/bitnami/charts/tree/master/bitnami/wordpress ) 
 
 ### PVC 구성

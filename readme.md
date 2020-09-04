@@ -143,17 +143,17 @@ wordpressFirstName: ""
 wordpressLastName: "ttc"
 wordpressEmail: "ttc@sk-ttc.com"
 persistence:
-  existingClaim: wordpress-pvc  # 재설치를 많이 하면 미리 만들어두는 게 나음
+  existingClaim: wordpress-pvc  # 재설치를 많이 하려다 보니 미리 만들어두었음.
   #storageClass: standard # RWO
   #storageClass: nfs-client # RWX
   #size: 6Gi
 mariadb:
   enabled: false
 externalDatabase:
-  #host: 127.0.0.1
-  host: 10.58.160.3
+  host: 10.58.160.3  # 1안 Cloud sql의 private ip 입력
+  #host: 127.0.0.1   # 2안 Cloud sql 접속 시 사용
   user: ttc
-  password: ttc2020!
+  password: _my_password_db_
   database: wordpress
   port: 3306
 image:
@@ -166,8 +166,8 @@ metrics:
     registry: asia.gcr.io
     repository: ttc-team-14/apache-exporter
     tag: 0.8.0-debian-10-r123
-replicaCount: 3
-affinity:
+replicaCount: 3  # 노드 기본 수가 3개여서 맞춤
+affinity:        # pod 가 최대한 서로 다른 노드에 분산되어 뜨게 함. 노드는 노드대로 서로 다른 zone에 뜨므로 가용성/안정성 보장에 유리
   podAntiAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
     - podAffinityTerm:

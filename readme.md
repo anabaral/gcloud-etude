@@ -93,6 +93,7 @@ $ docker push asia.gcr.io/ttc-team-14/gce-proxy:1.11
 ## wordpress 설치
 
 helm 으로 설치하는데 먼저 할 일이 있음.
+(참조: https://github.com/bitnami/charts/tree/master/bitnami/wordpress ) 
 
 ### PVC 구성
 
@@ -263,8 +264,10 @@ $ sh plugin.sh uninstall   # 모두 역순으로 비활성화 후 제거
 
 ## elasticsearch 설치
 
-역시 helm 으로 설치했는데, wordpress wordpress 내부 사용 용도라서 외부 접속 등의 설정이 불필요해서 간단하게 작성..
-하고 싶었는데.. 이미지 설정 때문에 복잡해짐
+역시 helm 으로 설치
+(참조: https://github.com/bitnami/charts/tree/master/bitnami/elasticsearch )
+
+파라미터 파일 작성이 필요함. (wordpress 내부 사용 용도라서 이미지 설정만 아니면 간단히 작성 되는데..)
 
 ```
 $ vi elasticsearch-values.yaml

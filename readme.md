@@ -166,7 +166,7 @@ metrics:
     registry: asia.gcr.io
     repository: ttc-team-14/apache-exporter
     tag: 0.8.0-debian-10-r123
-replicaCount: 2
+replicaCount: 3
 affinity:
   podAntiAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
@@ -356,7 +356,7 @@ $ helm install -n ttc-app elasticsearch --version 12.6.2 -f elasticsearch-values
 * Diagnostics 에서 별다른 문제가 없음을 확인 (PhpRedis: Not loaded 같은 건 무시해도 됨)
 
 
-## frontend web 구성
+## frontend proxy (=web) 구성
 
 nginx 기반의 reverse proxy 역할만 하는 레거시 웹은 
 어차피 static file들을 CDN에서 서비스하는 걸로 계획했기에 불필요해서 없애려 했음.
@@ -413,44 +413,45 @@ metadata:
   name: frontend-config
   namespace: ttc-app
   labels:
-    app: webserver
+    app: proxy
     release: frontend
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: frontend-svc
+  name: proxy
   namespace: ttc-app
   labels:
-    app: webserver
+    app: proxy
     release: frontend
 spec:
   selector:
-    app: webserver
+    app: proxy
     tier: web
   ports:
   - port: 80
+    nodePort: 30723  # just avoid duplicate
     targetPort: 80
   type: NodePort
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frontend
+  name: proxy
   namespace: ttc-app
   labels:
-    app: webserver
+    app: proxy
     release: frontend
 spec:
-  replicas: 2
+  replicas: 3    # 기본 노드 수가 3
   selector:
     matchLabels:
-      app: webserver
+      app: proxy
       tier: web
   template:
     metadata:
       labels:
-        app: webserver
+        app: proxy
         tier: web
     spec:
       containers:
@@ -463,6 +464,13 @@ spec:
           name: nginx-conf
           readOnly: true
           subPath: default.conf
+        resources:
+          requests:
+            cpu: 50m
+            memory: 100Mi
+          limits:
+            cpu: 50m
+            memory: 100Mi
       volumes:
       - name: nginx-conf
         configMap:

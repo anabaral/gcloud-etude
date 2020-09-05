@@ -73,3 +73,5 @@ spec:
             - kubectl scale deploy -n ttc-app $(kubectl get service -n ttc-app wordpress -o jsonpath='{.spec.selector.app\.kubernetes\.io/instance}')  --replicas=10
           restartPolicy: OnFailure
 ```
+
+* 이미지가 bitnami/kubectl:latest 인데 이것은 따로 갈무리가 필요할 것 같습니다.

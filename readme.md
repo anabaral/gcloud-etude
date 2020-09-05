@@ -509,3 +509,10 @@ Chrome에서 하필 ROOT URL만 '이 사이트의 보안 연결(HTTPS)은 완벽
 https://github.com/anabaral/gcloud-etude/blob/master/bluegreen.md
 
 
+## 토요 이벤트 대응 Scheduling 
+
+토요 이벤트에 대응하여 일정 시각에 scale out을 미리 수행하는 cronjob 구성을 기술함.
+
+https://github.com/anabaral/gcloud-etude/blob/master/scheduling-scale.md
+
+

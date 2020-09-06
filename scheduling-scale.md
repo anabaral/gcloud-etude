@@ -6,6 +6,13 @@
   - 이 때 Blue/Green 배포를 고려하여 "Service wordpress 가 가리키는 deployment"를 특정하도록 스크립트를 만들었습니다.
 * 이 동작이 적절한 권한을 가지고 실행되도록 Service Account, Role 및 RoleBinding 을 구성합니다.
 
+우선 이미지 갈무리
+```
+$ docker pull bitnami/kubectl:1.18.8-debian-10-r18
+$ docker tag bitnami/kubectl:1.18.8-debian-10-r18 asia.gcr.io/ttc-team-14/kubectl:1.18.8-debian-10-r18
+$ docker push asia.gcr.io/ttc-team-14/kubectl:1.18.8-debian-10-r18
+```
+
 아래의 cronjob은 하나 뿐이어서 09:40 KST 에 scale out 하는 설정만 존재하는데,<br>
 hpa 설정이 이미 존재하므로 요청 감소에 따라 자연스럽게 pod 를 줄이게 되긴 합니다만, <br>
 필요하면 10:15 KST 쯤 다시 scale in 하는 설정을 새로운 cronjob 추가할 수 있습니다.
@@ -66,7 +73,7 @@ spec:
           serviceAccountName: wordpress-scaler
           containers:
           - name: scaler
-            image: bitnami/kubectl:latest
+            image: asia.gcr.io/ttc-team-14/kubectl:1.18.8-debian-10-r18
             command:
             - /bin/sh
             - -c
@@ -74,4 +81,3 @@ spec:
           restartPolicy: OnFailure
 ```
 
-* 이미지가 bitnami/kubectl:latest 인데 이것은 따로 갈무리가 필요할 것 같습니다.

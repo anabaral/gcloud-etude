@@ -45,6 +45,27 @@ $ gcloud sql instances list
 $ gcloud sql users set-password root "%" --password "___<your_password>___" --instance ttc-team14
 ```
 
+Cloud Sql 은 다양한 접속 방법을 제공한다.
+- private ip 로 직접 연결
+- (public ip 를 켜고) '연결 이름' 이라는 것을 통해 연결
+- SSL 연결
+
+위 두 방법은 [readme.md](https://github.com/anabaral/gcloud-etude) 에서 설명한 바 있는데, <br>
+여기서는 나머지 SSL 연결을 다루려 한다.
+
+서버 설정 방법은 단순하다. 
+- 일단 공개IP 사용한다는 가정.
+- 인증서는 아마 이미 생성되어 있을 것. (없으면 새로 만들면 그뿐) 다운로드 받을 수 있음. 
+- 웹 콘솔의 SQL 메뉴에서 서버 인증서를 만든 후 클라이언트 인증서를 만들고 비밀키와 인증서를 다운로드 받을 수 있음.
+
+문제는 Wordpress 이다. 어떻게 변화를 최소화 하면서 (즉 php파일을 덜 건드리면서) 설정을 할 수 있을까? <br>
+이걸 처음 생각했을 시점엔 아예 SSL 적용을 배제했었는데, 다시 고민하는 시점엔 이것저것 바꿔가면서 하기 힘들어졌다. (경연 과제 제출했음) <br>
+특히 인터넷에 많이 보이는 wp-config.php 파일을 건드리는 방법은 그 파일이 다른 것에 의해서도 잘 바뀌는 성격의 것이라...
+
+- 일단 서버인증서는 이 환경변수 설정과 secret 마운트 조합으로 어떻게 할 수 있을 것 같다: WORDPRESS_DATABASE_SSL_CA_FILE=
+- 클라이언트 인증서는? mysql client는 서버 인증서만 파라미터로 주어질 경우에는 클라이언트 인증서를 적당히 생성해서 쓰는 것 같기도 하다. 
+  하지만 google cloud 쪽 문서를 보면 생성한 클라이언트 인증서만 받아들이는 것 같다..
+  이게 안되면 소용 없는데..
 
 
 

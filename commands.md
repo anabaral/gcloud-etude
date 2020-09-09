@@ -1,5 +1,7 @@
 # 유용한 명령어들 적어두기
 
+대부분은 독서통신 책에서 나오는 명령어 위주로 정리하지만 경험상 얻은 것을 적기도 하겠음.
+
 ## 실행 권한 획득
 
 VM이나 혹은 Google cloud sdk(=gcloud, 쉽게 생각해서) 를 설치한 클라이언트에서 gcloud 명령 실행 권한을 획득하는 방법
@@ -30,5 +32,19 @@ Do you want to continue (Y/n)?
 특히 다른 계정으로 하려면 웹 콘솔에서 메뉴 - API 및 서비스 - 서비스 계정 으로 들어가 키를 생성하고 
 이를 자신의 계정 홈의 적당한 곳에 넣어야 하는 것 같다.
 (참조: https://jungwoon.github.io/google%20cloud/2018/01/11/Google-Application-Default-Credential/ )
+
+## Cloud Sql 다루기
+
+Cloud Sql 인스턴스 만들어 둔 것 확인
+```
+$ gcloud sql instances list
+```
+
+패스워드 설정 (mysql 문법 같음. 다른 DB면 문법이 약간 달라질 것 같음)
+```
+$ gcloud sql users set-password root "%" --password "___<your_password>___" --instance ttc-team14
+```
+
+
 
 
